@@ -36,6 +36,7 @@ inFile = open('positionsHomePlanet.npy', 'rb')
 pos_p = load(inFile)
 time = linspace(0, T_max, t_steps) #bruk tall fra part2 t_steps, t_max
 
+print shape(pos_p)
 
 pos_func = interp1d(time, pos_p)
 pos_p0 = pos_func(time[0])
@@ -49,19 +50,19 @@ for t in time:
         t_min = t
         r_min = r_
 
-print 'least distance:'
-print r_min
-print 'at time: '
-print t_min
+#print 'least distance:'
+#print r_min
+#print 'at time: '
+#print t_min
 
 
 
 print 'visualising'
-show()
+hold('on')
 for nr  in range(N):
-    plot(pos_func(time)[:,nr], label=('planet ' +str(nr)))
-    plot(pos_func(t_min)[:,nr], label=('planet '+str(nr) + 'at time '+str(t_min)+'yrs'))
-
+    plot(pos_p[0,nr], pos_p[1,nr], label=('planet ' +str(nr)))
+#    plot(pos_func(t_min)[:,nr], label=('planet '+str(nr) + 'at time '+str(t_min)+'yrs'))
+show()
 
 # launch satellite slightly in front of planet 1, redo 
 # untill satisfied/boost for proper velocity and direction. 
