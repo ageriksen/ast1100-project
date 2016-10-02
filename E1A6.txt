@@ -1,0 +1,87 @@
+This is a file to record the thought behind the E1A6 python file 
+for exercise 1A.6
+
+
+1: calculate escape velocity:
+ 40 v_esc = sqrt((2*G*m_p)/R) # m/s
+#print v_esc # >>535256.837065
+
+2: dedicate vectors for particles in box -> create box of hot gass
+randomized 3-dim matrices of 3 columns with N rows. 
+v is normal distribution, and r is uniform.
+histograms of the 2 can be found in 
+>> /home/anders/Documents/ast1100/prosjektoppgave/testfigures
+sigma inn til random: 6425
+sigma ut: 6457
+mu ca. 0 på begge. 
+
+
+3:
+a: test that average kinetic energy is equal to work from gass pressure.
+I scale up the kinetic energy to the sum total for the gass assuming every 
+particle held the mean value. This is to reduce bits used in the exponent 
+and hopefully increase accuracy. 
+calculating the energy from the pressure is straightforward, as the formula is 
+given. I calculate my simulated energy from summing the individually squared elements, both in the 3 dimensions and the sum over all particles. Then I scale
+the resulting sum with (0.5*m) to complete the formula for Ek.
+the printout is as follows:
+sum 1.23210127047e+13
+Ek_p 1.38064852e-14
+Ek 2.06037802288e-14
+rel_err 0.492326245986
+and we notice that the relative error is 0.5, which means we are ~50% off our
+mark. This is too large and requires further investigations. 
+
+b: mean abs velocity should follow 2*sqrt( (2*k*T)/(pi*m) ). test this.
+I scale up the mean velocity to the total if every particle held the mean. 
+This is to reduce the amount of bits spent in creating the exponent of the
+float. 
+The absolute mean velocity is found by integrating over the velocities from 
+0 to infinity of v*P(v), P(v) being the Boltzmann distribution function for 
+absolute velocity. Analytically, this gives 2*sqrt( (2kT)/(pi m) )-
+to get the sum ov the absolute value, I first sum the square of each particles velocities in the xyz directions, then sum up the square roots of this sum. 
+This returns the following:
+velocity
+boltzmann 1025289178.15
+mean 1022906042.11
+rel_error 0.00232435501734
+
+	I did some testing, and when I ran it with an N = 1e7, I got this
+	printout:
+		sum 2.47512812003e+15
+		Ek_p 1.38064852e-12
+		Ek 2.07110553161e-12
+		rel_err 0.500096151635
+		velocity
+		boltzmann 144942034471.0
+		mean 144949637831.0
+		rel_error 5.24579329952e-05
+
+	When attempting an N = 1e2, I got this: 
+
+		sum 28482592373.3
+		Ek_p 1.38064852e-17
+		Ek 2.38332933724e-17
+		rel_err 0.726239012112
+		velocity
+		boltzmann 1449420.34471
+		mean 1547300.37251
+		rel_error 0.0675304635789
+The error shot up on the absolute velocity, but stayed mostly the same for 
+the kinetic energy when I increased the amount of particles. This I find 
+curious. A more expected variant was the slight increase in both Ek and 
+absv when I reduced the number of particles to 100.
+
+
+FINAL ANSWER::
+Python 2.7 performs an integer division when writing (3/2). adding a "."
+fixed the issue, (3./2) gives:
+sum 1.22949863848e+13
+Ek_p 2.07e-14
+Ek 2.05941021946e-14
+rel_err 0.00511583600926
+velocity
+boltzmann 1024205719.7
+mean 1021825101.99
+rel_error 0.00232435501734
+
