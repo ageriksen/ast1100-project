@@ -3,22 +3,33 @@ This program aims to plot the travel of a satelite from home planet
 to target planet. 
 """
 
+###############################################################################
 # imports
 from numpy import (
     array, pi, load, linspace, linalg,
     shape)
 from matplotlib.pyplot import (
-    plot, hold, show)
+    plot, hold, show, legend)
 import MySolarSystem as M
 from LeapFrog import *
 from scipy.interpolate import interp1d
 
+
+###############################################################################
+# functions
+
+def accelerate(r, m):
+    r_ linalg.norm(r)
+    return -(G*m*r)/(r_**3)
+
+###############################################################################
 # set constants
 G = 4*pi**2 # grav. constant
 T = 10000# 1e4K temperature
 #k # boltzmann constant
 
-# retrieving heavy planets
+###############################################################################
+# collecting from my system
 syst = M.Myseed() # instancing SolarSystem with my seed.
 N = M.Nplanets(syst) # nr. of planets
 r0 = [[syst.x0[i],syst.y0[i]] for i in range(N) ]
@@ -28,6 +39,7 @@ m_s = M.starmass(syst) #starmass
 m_p = M.p_mass(syst) # planetmass
 
 
+###############################################################################
 # collecting sim-data from planet_orbits
 T_max = 25 #yrs. span of sim.
 n = 20000 # nr. of timesteps in a year.
@@ -41,6 +53,7 @@ print shape(pos_p)
 pos_func = interp1d(time, pos_p)
 pos_p0 = pos_func(time[0])
 
+###############################################################################
 # figure time of shortest distance between the planets
 r_min = linalg.norm(pos_p0[:,1])
 for t in time:
@@ -57,14 +70,37 @@ for t in time:
 
 
 
-print 'visualising'
-hold('on')
-for nr  in range(N):
-    plot(pos_p[0,nr], pos_p[1,nr], label=('planet ' +str(nr)))
-#    plot(pos_func(t_min)[:,nr], label=('planet '+str(nr) + 'at time '+str(t_min)+'yrs'))
-show()
 
+#print 'visualising'
+#plot(pos_func(t_min)[0,0], pos_func(t_min)[1,0],
+#   'o', label=('planet 0 at time 3.71 yrs'))
+#plot(pos_func(t_min)[0,1], pos_func(t_min)[1,1],
+#   'o', label=('planet 1 at time 3.71 yrs'))
+#hold('on')
+#for nr  in range(N):
+#    plot(pos_p[0,nr], pos_p[1,nr], label=('planet ' +str(nr)))
+#legend()
+#show()
+
+###############################################################################
 # launch satellite slightly in front of planet 1, redo 
+
+# half-step
+for i in planets:
+    for j in planets:
+        if i != j:
+            r[0] = r[0] + v0_half(
+                v[0,i,:], accelerate( (r[0,i,;]-r[0,j,:]), m), dt)
+            
+# integrating
+for t in time:
+    for i in planets:
+       for j in planets:
+           if i != j:
+               r[t] = r[t] + ieapFrog(
+                    r[t,i,:]-r[t,j,:], v[t,i,:], accelerate, dt, m) 
+
+###############################################################################
 # untill satisfied/boost for proper velocity and direction. 
 
 
