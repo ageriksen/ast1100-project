@@ -1,0 +1,74 @@
+NASA-møte 1 tir 30/08-16
+
+første mål: lage rakettmotor
+
+- fått seed til random solsystem.
+
+"solar system class" som skal være i directory når man kjører kodene. 
+	kan lage xml filer for unity.
+7 parts, 1st this week. 
+
+mye jobb, men få til alt, sikter mot A
+
+simulate box w/ particles and pressure. this will be the rocket engine
+
+		- note: move files from download to proper dir.
+
+rocketmotor. 
+the lecture notes have good descriptions as well as greater detail in pdf from Robert. 
+
+3-bdy systetm with double sun is regular portion of course this year. generally 
+
+> python myseed.pyc myusername
+"someseed"
+
+in py file
+import ast1100Solarsystem
+myss = myseed
+
+
+
+write a weekly log
+include thought process.
+
+
+no one true sollution. 
+
+
+
+there will be bugs, on account of small dev team - let them know if e.g. extreme planets or similar. 
+
+
+
+thoughts on units used. 
+particles in box
+	kg of fuels
+	velocity is not in SI, uses AU/year. 
+		mainly for convenience. 
+		prepare for transformations
+		AU = 149 597 871 km
+
+	periods given in years
+	positions given in AU
+	mass of planets given in sun-masses ("ms")
+
+	mass of lander is in kg, pluss some others. 
+	keyword: PAY ATTENTION TO UNITS
+	radi might be km.
+
+
+planet 0 is always homeworld, not necessarily the closest to the sun. besides in the livable sone, 
+position
+
+normally, NASA meetings, 1st hour for discussion, 2nd for working. new parts of project given out 
+each week. roughly.
+
+
+
+
+for the box, simulate the box, 
+if tests to check if particle hits box. 
+once opens hole, how much energy disapears in 1 direction, when exiting
+remember to have appriopriately spaced time intervals. 
+control code released later on day of writing. 
+

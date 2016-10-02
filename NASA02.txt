@@ -1,0 +1,73 @@
+NASA møte 1 | 0609161
+
+trenger ikke ta med tyngdekraft ved beregning av fuel. KAN, men må ikke. 
+må da og tilpasse test.
+
+"mass-needle-check"(MNC) skal passe på at motoren ikke er feil. den er noe spesiell, derfor 
+må du ikke nødvendigvis vise at den er bestått.
+
+et snitt over 1000 bokser per 10^-12 s kan være mer realistisk enn 1 boks over 10^-9 s
+
+MNC: 
+	tar kunn SI
+	ignorerer G
+	v = 0 -> v = v_boost
+	a = (dp/dt)/M for hele år er det kunne denne som trengs | +g (g SKAL IKKE VÆRE MED)
+	M = 1100kg (ingen reduksjon, ingen fuel)
+	Hagala mener at dersom det fremdeles ikke går/dersom dere har med flere ting, glem å sorsøk å få den til å fungere. 
+	Dersom e.g. M = 1100kg + M_fuel (dette er ikke MNC.)
+	behold gjerne funksj. for M = Msat - Mfuel
+
+
+Simulere soslsystem
+
+ast1100 solarsystem ignorerer Solens bevegelse av planeter og 
+ignorerer planetenes tyngdekraft mellom hverandre. 
+
+enkleste måten å ha god accuracy, ignorer tyngde fra planeter - kortere tidssteg
+
+alle planeter beveger seg i planet. 
+
+måner kunn kosmetiske. 
+
+r0, v0 for planetene, sol i origo, planet ingen g mellomhverandre. 
+diff eq for å regne ut bane.
+
+
+på slutten, der en extraterrestrial som ser på systemet, kan de se på stjernen om det er planeter. 
+her må man behandle solen som om den beveger seg. dette blir en kortere simulering.
+
+skal skrive 
+20 år pos[nrplanets, ntime, xy]
+
+
+integ metode: 
+Leapfrog
+	nøyaktighet øker med (dt)^2 (eulercromer har dt)
+	bevarer mek energi dersom a(x) ekslusivt. ingen frik-
+	sjone, etc.
+idea: divide timestep in 2.
+x0, v0
+tar x(1/2) og beregner a(x(1/2)) og bruker den til å integrere v til v1.
+	kan og hete "velocity verlet" skulle hatt samme result. muligens noe annet
+	 i implementasjon
+
+
+kan bruke google:"artonomy/astrophysics forsøksrapport" som mal
+
+
+Alle masser gis i solmassesr, alle avstander gis i AU. 
+husk at G har SI. i AU og solmasser blir G = 4pi^2
+ikke anbefalt å gjøre om til SI. ofte små ting som er 
+langt unna, derfor blir det fors numeriske feil. 
+
+convergence testing:
+	hvordan vet man at parametre er realistiske etter e.g. leapfrog med en eller annen 
+	dx. 
+	
+	 - minker dt til resultatet konverger til et godt nok punkt. 
+	innen 
+	typisk mindre enn 1% endring av avstand per steg er godt nok.  
+
+
+HUSK Å LAGRE HISTOGRAM TESTER.

@@ -1,0 +1,63 @@
+NASA meeting 200916 | meeting 04
+
+
+We send commandes to mlp, not our own code. 
+takes commands: 
+    Launch
+    Boost
+    Video
+    Orient
+
+
+todays topic: 
+	how to write software to interact with MCAst.
+
+don't waste time making toooo specific. 
+
+when boosting, 
+	for fuel consump. need time, 
+
+not too much noise, but ~~10% extra...
+
+
+###############################33
+part 4:
+orientation
+
+what do we want to know when orienting?
+	position
+		sattelite has radar. 
+		can measure dist to sun and planets in AU.
+		from this, measure position
+	angle
+	hastighet
+		plan is find 2 distant stars. what is doppler of stars
+		compared to still (compared to sun)
+		
+		to find, point spectrograph on each star and compare to still. 
+
+
+
+given flat image from sattelite camera, how can you compare this to spherical....sphere. 
+
+	applying an inverse of a known transformation pattern from globe to flat. 
+		The inverse will resize the image's parts. 
+
+##
+intermission:
+THAT IS WRONG!!!!!
+we need to take into account the projection of a 3D sphereshell onto a 2D plane. 
+
+actually, just overcomplicating.
+
+stereographic projection. 
+	with small fov. 
+##
+		when known angle, can move to take picture of 2 stars
+		use Doppler.
+
+
+ved orientering, får liste med avst per planet i: [r0_sat, r1_sat, r2, r3, ..., rN, r_sol]
+				know [r1, rN]
+
+	probs with circles, numerics. errors can compound to a lot. 
