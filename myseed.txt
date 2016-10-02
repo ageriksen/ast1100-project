@@ -1,0 +1,2 @@
+80101
+#this document is meant to store the seed from myseed.pyc
