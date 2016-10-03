@@ -13,14 +13,39 @@ from matplotlib.pyplot import (
 import MySolarSystem as M
 from LeapFrog import *
 from scipy.interpolate import interp1d
+import sys
 
 
 ###############################################################################
 # functions
 
 def accelerate(r, m):
-    r_ linalg.norm(r)
+    r_ = linalg.norm(r)
     return -(G*m*r)/(r_**3)
+
+def velocity(dp, dti, scale='m/s'):
+    'returns velocity in AU/yr or m/s'
+    if scale == 'AU/yr':
+        return dp/dt
+    elif scale == 'm/s':
+        dp = dp*AU
+        dt = dp*yrs
+        return dp/dt
+    else:
+        print 'wrong scale, buddy.'
+        sys.exit
+
+def e_theta(theta):
+    return array((cos(theta), sin(theta)))
+
+def launchPosition(r, R, e_theta, theta):
+    """
+    r[0] is the position vector of planet 0
+    R[0] is the radius of planet 0.
+    e_theta is a vector describing the 
+    angle of the launch relative to r[0]
+    """
+    launch_pos = r + R*e_theta(theta)
 
 ###############################################################################
 # set constants
@@ -86,20 +111,20 @@ for t in time:
 # launch satellite slightly in front of planet 1, redo 
 
 # half-step
-for i in planets:
-    for j in planets:
-        if i != j:
-            r[0] = r[0] + v0_half(
-                v[0,i,:], accelerate( (r[0,i,;]-r[0,j,:]), m), dt)
-            
-# integrating
-for t in time:
-    for i in planets:
-       for j in planets:
-           if i != j:
-               r[t] = r[t] + ieapFrog(
-                    r[t,i,:]-r[t,j,:], v[t,i,:], accelerate, dt, m) 
-
+#for i in planets:
+#    for j in planets:
+#        if i != j:
+#            r[0] = r[0] + v0_half(
+#                v[0,i,:], accelerate( (r[0,i,;]-r[0,j,:]), m), dt)
+#            
+## integrating
+#for t in time:
+#    for i in planets:
+#       for j in planets:
+#           if i != j:
+#               r[t] = r[t] + ieapFrog(
+#                    r[t,i,:]-r[t,j,:], v[t,i,:], accelerate, dt, m) 
+#
 ###############################################################################
 # untill satisfied/boost for proper velocity and direction. 
 
