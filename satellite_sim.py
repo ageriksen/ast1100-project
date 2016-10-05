@@ -7,7 +7,7 @@ to target planet.
 # imports
 from numpy import (
     array, pi, cos, sin, sqrt,  load, linspace, zeros, linalg,
-    shape)
+    shape, append)
 from matplotlib.pyplot import (
     plot, hold, show, legend)
 import MySolarSystem as M
@@ -54,35 +54,41 @@ def planetvelocity(nr, time, epsilon):
     Dr = pos_func(time+epsilon)[:,nr] - pos_func(time-epsilon)[:,nr]
     Dt = 2*epsilon
     return Dr / Dt
-#def velocity(dp, dti, scale='m/s'):
-#    'returns velocity in AU/yr or m/s'
-#    if scale == 'AU/yr':
-#        return dp/dt
-#    elif scale == 'm/s':
-#        dp = dp*AU
-#        dt = dp*yrs
-#        return dp/dt
-#    else:
-#        print 'wrong scale, buddy.'
-#        sys.exit
 
-def journey(rs, N_p, t, dt)
+def journey(rs, vs, t, dt):
     """
-    Cronichles the journey of the sattelite through the solar system
-    with the gicen position array to update, the number of planets
-    affecting the satellite, the starttime t and the length of each timestep.
+    Cronichles the journey of the sattelite through the solar system, 
+    the starttime t and the length of each timestep.
     """
+    for j in range(N+1):
+        if j < N: 
+            vs[0] = v0_half(vs[0], accelerate(rs[0,:]-pos_func(t)[:,j], m[j]), dt)
+        else:
+            vs[0] = v0_half(vs[0], accelerate(rs[0,:], m[j]), dt)
+            
     for i in range(shape(rs)[1]):
-        for j in in range(N+1): #iterate over planets and star
-            rs[i+1], vs[i+1] = (
-                rs[i] + Leapfrog( rs[i,:] - pos_func(t)[j,:], accelerate, 
-                    dt, m[j])[0],
-                vs[i] + Leapfrog( rs[i,:] - pos_func(t)[j,:], accelerate, 
-                    dt, m[j]) 
-                               )
-
+        for j in range(N+1): #iterate over planets and star
+            if j < N:
+                #iterating over planets
+                # LeapFrog(r, v, a, dt, var)
+                rs[i+1], vs[i+1] = (
+                    rs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
+                        dt, m[j])[0],
+                    vs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
+                        dt, m[j]) 
+                                   )
+            else:
+                #pull from star
+                rs[i+1], vs[i+1] = (
+                    rs[i] + Leapfrog( rs[i,:], accelerate, 
+                        dt, m[j])[0],
+                    vs[i] + Leapfrog( rs[i,:], accelerate, 
+                        dt, m[j]) 
+                                  )
         t += dt
-    return rs
+        if linalg.norm(rs[i+1]) > 1:
+            sys.exit 
+    return rs, vs, t
 
 ###############################################################################
 # set constants
@@ -93,12 +99,13 @@ AU = 149597870700 #m in 1 AU
 
 ###############################################################################
 # collecting from my system
+print '---------------------------------------------------------------'
 syst = M.Myseed() # instancing SolarSystem with my seed.
 N = M.Nplanets(syst) # nr. of planets
 phi0 = M.init_angle(syst) # initial angle in shared orbital plane
 m_s = M.starmass(syst) #starmass
 m_p = M.p_mass(syst) # planetmass
-m = 
+m = append(m_p, m_s) # new array of sun and planets
 R_p = M.p_radius(syst) # planet radius
 R_p = R_p/AU #planet radius in AU
 
@@ -120,6 +127,7 @@ time = linspace(0, T_max, t_steps) #bruk tall fra part2 t_steps, t_max
 pos_func = interp1d(time, pos_p)
 pos_p0 = pos_func(time[0])
 
+print '---------------------------------------------------------------'
 ###############################################################################
 # figure time of shortest distance between the planets
 r_min = linalg.norm(pos_p0[:,1])
@@ -129,25 +137,19 @@ for t in time:
     if r_ < r_min:
         t_min = t
         r_min = r_
+"""consider saving this file as .npy and retrieveing it to save time, or
+restrict the range of the loop to ~3yrs, or making it a while loop for 
+easier manipulation"""
+print '---------------------------------------------------------------'
+print 'least distance [AU]:'
+print r_min
+print 'at time [yrs]: '
+print t_min
+print '---------------------------------------------------------------'
 
-#print 'least distance:'
-#print r_min
-#print 'at time: '
-#print t_min
 
 
 
-
-#print 'visualising'
-#plot(pos_func(t_min)[0,0], pos_func(t_min)[1,0],
-#   'o', label=('planet 0 at time 3.71 yrs'))
-#plot(pos_func(t_min)[0,1], pos_func(t_min)[1,1],
-#   'o', label=('planet 1 at time 3.71 yrs'))
-#hold('on')
-#for nr  in range(N):
-#    plot(pos_p[0,nr], pos_p[1,nr], label=('planet ' +str(nr)))
-#legend()
-#show()
 
 
 
@@ -158,52 +160,67 @@ for t in time:
 theta = 30 #degrees
 rp0 = pos_func(t_min)[:,0]
 epsilon = 1e-5
+
 r0 = launchPosition(rp0, linalg.norm(pos_func(t_min)), e_theta, theta)
-
-
-
 v0 = 2*v_esc*e_theta(theta) + planetvelocity(0, t_min, epsilon)
-v0 = planetvelocity(1, t_min, epsillon) - planetvelocity(0,t_min, epsilon)
-
+#v0 = planetvelocity(1, t_min, epsillon) - planetvelocity(0,t_min, epsilon)
 
 # position for transit
-length = shape(pos_p)[2]*0.5
-rs = zeros(2, shape(pos_p)[2])
-vs = zeros(2, shape(pos_p)[2])
-vs[0] = v0
-rs[0] = r0
+length1 = int(shape(pos_p)[2]*0.5)
 
-"""
-v0 = const * v_esc # in direction e_theta
-integrate as bellow.
-plot planets, planet 0, 1 and sattelite - or shortest r_ between 
-satelite and planets
-"""
+rs_launch = zeros((length1, 2))
+vs_launch = zeros((length1, 2))
+vs_launch[0] = v0
+rs_launch[0] = r0
 
-# half-step
-for i in planets:
-    vs[0] = vs[0] + v0_half(
-        v[0,i,:], accelerate( (rs[0]-pos_func[0,i,:]), m), dt)
-            
-# integrating
-for t in time:
-    for i in planets:
-        ti = index(time, t)
-        rs[t] = rs[t] + LeapFrog(
-             rs[t,i,:]-pos_func[t,j,:], v[t,i,:], accelerate, dt, m) 
-
-
-# new iteration:
-
-#hal-step:
-for i in planets:
-    vs[0] = vs[0] + v0_half(
-        v[0], accelerate( (rs[0] - pos_func[0,i,:]),m),dt)
-
-dt = somenumber
+#dt = somenumber
+#t = t_min
+#rs, vs = journey(rs, vs, t, dt)
 t = t_min
+dt_m = 1e-6 #yrs timestep launch / landing
+dt_l = 1e-3 #yrs timestep free flight
+
+print 'm', m
+rs_launch, vs_launch, t = journey(rs_launch, vs_launch, t, dt_m)
+
+
+####
+#print 'visualising'
+#plot(pos_func(t_min)[0,0], pos_func(t_min)[1,0],
+#   'o', label=('planet 0 at time 3.71 yrs'))
+#plot(pos_func(t_min)[0,1], pos_func(t_min)[1,1],
+#   'o', label=('planet 1 at time 3.71 yrs'))
+#hold('on')
+#for nr  in range(N):
+#    plot(pos_p[0,nr], pos_p[1,nr], label=('planet ' +str(nr)))
+#legend()
+#show()
+####
 
 ###############################################################################
 # untill satisfied/boost for proper velocity and direction. 
-
-
+###############################################################################
+"""
+--------------------------------------------------------------
+Run example:
+>>> python satellite_sim.py 
+---------------------------------------------------------------
+myseed 80101 <type 'int'>
+homeplanet is planet 0
+number of planets 8
+no index given
+initial angle of planets' orbits, rad:
+[ 0.          3.18581766  3.54960507  2.68861694  1.07636256  0.9163174
+  4.38663014  2.8985559 ]
+mass of star, [solar masses]
+mass of planets, [solar masses]
+no index given
+radi of planets, [km]
+---------------------------------------------------------------
+---------------------------------------------------------------
+least distance [AU]:
+0.30641235698
+at time [yrs]: 
+3.70855741711
+---------------------------------------------------------------
+"""
