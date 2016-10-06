@@ -65,7 +65,7 @@ def journey(rs, vs, t, dt):
             vs[0] = v0_half(vs[0], accelerate(rs[0,:]-pos_func(t)[:,j], m[j]), dt)
         else:
             vs[0] = v0_half(vs[0], accelerate(rs[0,:], m[j]), dt)
-            
+    
     for i in range(shape(rs)[1]):
         for j in range(N+1): #iterate over planets and star
             if j < N:
@@ -75,15 +75,15 @@ def journey(rs, vs, t, dt):
                     rs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
                         dt, m[j])[0],
                     vs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
-                        dt, m[j]) 
+                        dt, m[j])[1]
                                    )
             else:
                 #pull from star
                 rs[i+1], vs[i+1] = (
-                    rs[i] + Leapfrog( rs[i,:], accelerate, 
+                    rs[i] + LeapFrog( rs[i,:], vs[i], accelerate, 
                         dt, m[j])[0],
-                    vs[i] + Leapfrog( rs[i,:], accelerate, 
-                        dt, m[j]) 
+                    vs[i] + LeapFrog( rs[i,:], vs[i], accelerate, 
+                        dt, m[j])[1]
                                   )
         t += dt
         if linalg.norm(rs[i+1]) > 1:
@@ -131,12 +131,19 @@ print '---------------------------------------------------------------'
 ###############################################################################
 # figure time of shortest distance between the planets
 r_min = linalg.norm(pos_p0[:,1])
+r_ = linalg.norm(r_min)
 for t in time:
-    r = pos_func(t)[:,1] - pos_func(t)[:,0]
-    r_ = linalg.norm(r)
-    if r_ < r_min:
-        t_min = t
-        r_min = r_
+    if t < 3:
+        continue
+    elif t > 4:
+        break
+    else:
+        r = pos_func(t)[:,1] - pos_func(t)[:,0]
+        r_ = linalg.norm(r)
+        if r_ < r_min:
+            t_min = t
+            r_min = r_
+            
 """consider saving this file as .npy and retrieveing it to save time, or
 restrict the range of the loop to ~3yrs, or making it a while loop for 
 easier manipulation"""
@@ -180,7 +187,7 @@ t = t_min
 dt_m = 1e-6 #yrs timestep launch / landing
 dt_l = 1e-3 #yrs timestep free flight
 
-print 'm', m
+
 rs_launch, vs_launch, t = journey(rs_launch, vs_launch, t, dt_m)
 
 
