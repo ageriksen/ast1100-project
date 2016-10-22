@@ -5,10 +5,11 @@ Rewrite of first code to clarify
 ##############################################
 # imports
 import numpy as np
+import numpy.linalg as nplin
 import matplotlib.pyplot as plt
 import MySolarSystem as M
 import LeapFrog as lf
-import scipy as scp
+import scipy.interpolate as scp
 
 
 ##############################################
@@ -21,6 +22,7 @@ def e_theta(theta, r):
     returns radians. arcatn2 input is (y, x)
     """
     theta = theta + np.arctan2(r[1], r[0])
+    return theta
 
 def launchPosition(r, R, e_theta, theta):
     """
@@ -69,9 +71,9 @@ def journey(rs, vs, t, dt):
     for j in range(N+1):
         # set v0 to v_{1/2}
         if j < N:
-            vs[0] = v0_half( vs[0], accelerate( rs[0,:] - pos_func(t)[:,j] ), dt )
+            vs[0] = lf.v0_half( vs[0], accelerate( rs[0,:] - pos_func(t)[:,j], m[j]), dt )
         else: 
-            vs[0] = v0_half( vs[0], accelerate( rs[0,:], m[j] ), dt )
+            vs[0] = lf.v0_half( vs[0], accelerate( rs[0,:], m[j] ), dt )
     
     # initiating variables for storing least distance and timestamp.
     rs1_m = 1 # AU
@@ -86,27 +88,31 @@ def journey(rs, vs, t, dt):
             if j < N:
                 # iterating over all the planets
                 sat = (
-                    LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate,
+                    lf.LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate,
                         dt, m[j]) )
                 rs[i+1] += rs[i]+sat[0]
                 vs[i+1] += vs[i]+sat[1]
 
             else:
                 # pull of star.
-                sat = LeapFrog( rs[i,:], vs[i], acelerrate, dt, m[j] )
+                sat = lf.LeapFrog( rs[i,:], vs[i], accelerate, dt, m[j] )
                 rs[i+1] += rs[i]+sat[0]
                 vs[i+1] += vs[i]+sat[1]
         t += dt
-        R = pod_func(t)[:,1] - rs[i+1]
-        if linalg.norm(R) < linalg.norm(r_s1m):
+        R = pos_func(t)[:,1] - rs[i+1]
+        if nplin.linalg.norm(R) < nplin.linalg.norm(rs1_m):
             rs1_m = R
             ts1_m = t
+    return rs, vs, t, rs1_m, rs1_m
 
 ###############################################################
 # stating constants:
 G = 4*np.pi**2 #AU**3yr**-2M_s**-1  gravitational constant
 T = 10000 #1e4 K temperature in Kelvin
 AU = 149597870700 #m in 1 AU
+M_sol = 1.9891e30 #kg in 1 solar mass
+m_sat = 1100/M_sol # placeholder satelite mass
+
 
 ####################
 # collectim simulation data from planet_orbits
@@ -117,7 +123,7 @@ t_steps = n*T_max #timesteps for entire simulation
 ###################
 #loading arrays
 infile = open('positionsHomePlanet.npy', 'rb')
-pos_p = load(infile)
+pos_p = np.load(infile)
 time = np.linspace(0, T_max, t_steps) 
 
 pos_func = scp.interpolate.interp1d(time, pos_p)
@@ -137,4 +143,88 @@ R_p = R_p/AU #planet radius in AU
 
 #########
 #escape velocity
-v_esc = sqrt( (2*G*m_p[0]) / R_p[0] ) 
+v_esc = np.sqrt( (2*G*m_p[0]) / R_p[0] ) 
+k = 10
+r_stable = R_p[1] * np.sqrt( (m_s / m[1]) * (1./k) )
+print '----------------------------------------------------------'
+
+
+################################################################
+# estimating shortest distance between planets 0 and 1.
+print '----------------------------------------------------------'
+r_min = nplin.linalg.norm(pos_p0[:,1])
+r_ = nplin.linalg.norm(r_min)
+t_min = 10 # initial value for least time, yrs
+t = 3
+dt = 1e-9
+while r_ < r_min:
+    r = pos_func(t)[:,1] - pos_func(t)[:,0]
+    r_ = np.linalg.norm(r)
+    t_min = t
+    r_min = r_
+
+print '----------------------------------------------------------'
+print 'least distance [AU]: ', r_min
+print 'at time [yrs]: ', t_min
+print '----------------------------------------------------------'
+
+
+#################################################################
+#################################################################
+# Satellite launch at planet 1
+
+#########
+# Launch criteria
+theta = np.pi/2 # 90 degrees in radians
+rp0 = pos_func(t_min)[:,0]
+eps = 1e-9 # the small breadth epsilon for velocity
+
+# generating with functions
+r0 = launchPosition( rp0, R_p[0], e_theta, theta )
+
+v0 = v_esc * e_theta( theta, rp0 ) + planetvelocity( 0, t_min, eps )
+
+# Launch
+length1 = int(np.shape(pos_p)[2]*0.1)
+
+rs_launch = np.zeros( (length1, 2) )
+vs_launch = np.zeros( (length1, 2) )
+vs_launch[0] = v0
+rs_launch[0] = r0
+
+dt = 1e-9
+t = t_min
+
+rs_launch, vs_launch, t, rsl_m, tsl_m = (
+    journey( rs_launch, vs_launch, t, dt )
+        )
+
+print 'rsl_m', rsl_m
+################ rsl_m == 1...... #########################
+##########################################################
+########################################################
+
+#####################################################################
+# plotting journey
+print '----------------------------------------------------------'
+print 'visualizing'
+#satelite
+plt.plot( rs_launch[0,0], rs_launch[0,1], 'ro', label=('sat start') )
+plt.plot( pos_func(t_min)[0,0], pos_func(t_min)[1,0], 'bo', 
+    label=('planet 0 at time 3.71 yrs') )
+plt.plot( rs_launch[:,0], rs_launch[:,1], 'r', label=('satellite') )
+#least distance satellite
+#plt.plot( rsl_m[0], rsl_m[1], color=('black'), marker=('v'), label=('least dist') )
+plt.plos( pos_func(tsl_m)[0,1], pos_func(tsl_m)[1,1], 'ys', label=('planet least') )
+#least distance planets
+plt.plot( pos_func(t_min)[0,0], pos_func(t_min)[1,0], 'bo', 
+    label=('planet 0 at time 3.71 yrs') )
+plt.plot( pos_func(t_min)[0,1], pos_func(t_min)[1,1], 'bo', 
+    label=('planet 1 at time 3.71 yrs') )
+# planet orbits
+for nr in range(N):
+    plt.plot( pos_p[0, nr], pos_p[1, nr], label=('planet '+str(nr)) )
+legend()
+axis('equal')
+show()
+print '----------------------------------------------------------'
