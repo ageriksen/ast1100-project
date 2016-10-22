@@ -63,7 +63,7 @@ def journey(rs, vs, t, dt):
     Cronichles the journey of the sattelite through the solar system, 
     the starttime t and the length of each timestep.
     """
-    for j in range(N+1):
+    for j in range(1,N+1):
         # Taking a half-step to prep for the LeapFrog method
         if j < N: 
             vs[0] = v0_half(vs[0], accelerate(rs[0,:]-pos_func(t)[:,j], m[j]), dt)
@@ -83,6 +83,8 @@ def journey(rs, vs, t, dt):
                     vs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
                         dt, m[j])[1]
                                    )
+print '--------------------------------'
+print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             else:
                 #pull from star
                 rs[i+1], vs[i+1] = (
@@ -182,11 +184,6 @@ epsilon = 1e-5
 
 r0 = launchPosition(rp0, R_p[0],e_theta, theta)
 v0 = v_esc*e_theta(theta, rp0) 
-print '--------------------------------'
-print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
-print 'v0', v0
-print '--------------------------------'
-print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 v0 = v0 + planetvelocity(0, t_min, epsilon)
 
 #v0 = planetvelocity(1, t_min, epsillon) - planetvelocity(0,t_min, epsilon)
