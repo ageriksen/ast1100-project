@@ -49,12 +49,12 @@ def init_angle(starsyst, nr='NaN'):
 	if nr == 'NaN':
 		print 'no index given'
 		w = starsyst.omega
-		print "initial angle of planets' orbits, rad"
+		print "initial angle of planets' orbits, rad:"
 		print w
 		return w
 	else:
 		w = starsyst.omega[nr]
-		print "initial angle of planets' orbits, rad"
+		print "initial angle of planets' orbits, rad:"
 		print w
 		return w
 
@@ -62,12 +62,12 @@ def axisangle(starsyst, nr='NaN'):
 	if nr == 'NaN':
 		print 'no index given'
 		psi = starsyst.psi
-		print  'angle of semi-major axes for planets'
+		print  'angle of semi-major axes for planets:'
 		print psi
 		return psi
 	else:
 		psi = starsyst.psi[nr]
-		print  'angle of semi-major axes for planets'
+		print  'angle of semi-major axes for planets:'
 		print psi
 		return psi
 

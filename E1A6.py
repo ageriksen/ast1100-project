@@ -15,7 +15,7 @@ start_time = time.clock()
 #	#retrieving solar system data
 seed = Myseed() # fetching my seed from textfile myseed.txt through module. 
 m_0 = p_mass(seed, 0) #mass of home planet (home is 0)
-R = p_radius(seed, 0) #radius of home planet (home is 0)
+R = p_radius(seed, 0) #radius of home planet (home is 0) in km.
 
 	#setting important constants
 AU = 149597870700 #m exactly defined [2]
@@ -42,12 +42,13 @@ m_h = 3.3476467e-27 # kg mass of Deuterium, aka. hydrogen gas or H_2
 
 # escape velocity is the minimal velocity to escape the gravitational pull
 # of the homeplanet 0. this is when Ek > E_grav.
+R = R*1000
 v_esc = sqrt((2*G*m_p)/R) # m/s
 print '---------------------------------------------------------'
 print 'escape velocity is:', v_esc, 'm/s' 
 print '---------------------------------------------------------'
 """
-escape velocity is: 535256.837065 m/s
+escape velocity is: 16926.307383 m/s
 """
 
 	#### 2: dedicate vectors for particles in box ####

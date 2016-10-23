@@ -83,8 +83,8 @@ def journey(rs, vs, t, dt):
                     vs[i] + LeapFrog( (rs[i] - pos_func(t)[:,j]), vs[i], accelerate, 
                         dt, m[j])[1]
                                    )
-print '--------------------------------'
-print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+#print '--------------------------------'
+#print '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
             else:
                 #pull from star
                 rs[i+1], vs[i+1] = (
