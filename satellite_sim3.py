@@ -92,14 +92,14 @@ def accelerate(F, m):
     return F/m
 
 
-def journey(ms, rs, vs, t, dt, t_end):
+def journey(ms, rs, vs, t, dt):
     """
     simulations of journey between planets. 
     rs is the satellite position vector. 
     vs is the satellite velocity vector. 
     t is the initial time of launch.
     dt is the distance in time per step.
-    """
+    """ 
     # half-step of velocity:
     force = np.zeros(2)
     for j in range(N+1):
@@ -221,7 +221,8 @@ v0 = planetvelocity( 0, t_min, eps ) + v_esc*e_theta( theta, rp0 )*2
 
 
 # Launch
-# journey return rs, vs, t, rs1_m, ts1_m, i_min
+#def journey(ms, rs, vs, t, dt):
+#return rs, vs, t, rs1_m, ts1_m, i_min
 length1 = int(np.shape(pos_p)[2]*0.1)
 
 rs_launch = np.zeros( (length1, 2) )
@@ -231,27 +232,43 @@ rs_launch[0] = r0
 
 dt = 1e-9
 t = t_min
-tl_end = t + (day)
 
 print '----------------------------------------------------------'
 print 'began launch at time t: ', t
 #print 'initial acceleration'
 
-rs_launch, vs_launch, t, rsl_m, tsl_m, i_min = journey( 
-    m_sat, rs_launch, vs_launch, t, dt, tl_end )
+rs_launch, vs_launch, t, rsl_m, tsl_m, isl_m = journey( 
+    m_sat, rs_launch, vs_launch, t, dt)
 print 'finished launch at time t: ', t
 print '----------------------------------------------------------'
 print '==============================='
 print 'vsl_launch', vs_launch
 print '==============================='
 
+# mid flight
+rs_mid = np.zeros( (length1, 2) )
+vs_mid = np.zeros( (length1, 2) )
+rs_mid[0] = rs_launch[-1]
+vs_mid[0] = vs_launch[-1]
+
+dt = 1e-3
+
+print '----------------------------------------------------------'
+print 'mid flight from time t: ', t
+#rs_mid, vs_mid, t, rsm_m tsm_m, ism_m = journey(
+#    m_sat, rs_mid, vs_mid, t, dt)
+
+
+
 #####################################################################
 # plotting journey
 print '----------------------------------------------------------'
 print 'visualizing'
 #satelite
-plt.plot( rs_launch[0,0], rs_launch[0,1], 'ro', label=('sat start') )
+plt.plot( rs_launch[0,0], rs_launch[0,1], 'ro', label=('sat launch start') )
 plt.plot( rs_launch[:,0], rs_launch[:,1], 'r', label=('satellite') )
+plt.plot( rs_mid[0,0], rs_mid[0,1], 'ro', label=('sat mid start') )
+plt.plot( rs_mid[:,0], rs_mid[:,1], 'r', label=('satellite') )
 #least distance satellite
 #plt.plot( rsl_m[0], rsl_m[1], color=('black'), marker=('v'), label=('least dist') )
 plt.plot( pos_func(tsl_m)[0,1], pos_func(tsl_m)[1,1], 'ys', label=('planet least') )
