@@ -1,5 +1,21 @@
 """
 Rewrite of first code to clarify
+table of contents:
+header                approx line
+
+imports                  20
+functions                30
+constants               140
+planet_orbits           140
+loading arrays          150
+MySolarSystem           160
+escape velocity         170
+shortest distance       180
+satellite launch        210
+launch criteria         210
+initial condition       210
+launch                  220
+plot                    240
 """
 
 ##############################################
@@ -119,18 +135,18 @@ def journey(ms, rs, vs, t, dt, t_end):
 # stating constants:
 G = 4*np.pi**2 #AU**3yr**-2M_s**-1  gravitational constant
 T = 10000 #1e4 K temperature in Kelvin
-AU = 149597870700 #m in 1 AU
+AU = 149597870.7 #km in 1 AU
 M_sol = 1.9891e30 #kg in 1 solar mass
 m_sat = 1100 #kg placeholder satelite mass
 
 
-####################
+#########
 # collectim simulation data from planet_orbits
 T_max = 25 #yrs, timespan of simulation
 n = 20000 # nr. of timesteps per year.
 t_steps = n*T_max #timesteps for entire simulation
 
-###################
+#########
 #loading arrays
 infile = open('positionsHomePlanet.npy', 'rb')
 pos_p = np.load(infile)
@@ -139,7 +155,7 @@ time = np.linspace(0, T_max, t_steps)
 pos_func = scp.interpolate.interp1d(time, pos_p)
 pos_p0 = pos_func(time[0])
 
-#####################
+#########
 # data from MySolarSystem
 print '----------------------------------------------------------'
 syst = M.Myseed() # instancing solar system with seed
@@ -154,14 +170,11 @@ R_p = R_p/AU #planet radius in AU
 #########
 #escape velocity
 v_esc = np.sqrt( (2*G*m_p[0]) / nplin.linalg.norm(R_p[0]) ) 
-k = 10
-r_stable = R_p[1] * np.sqrt( (m_s / m[1]) * (1./k) )
 print '----------------------------------------------------------'
 
 
 ################################################################
 # estimating shortest distance between planets 0 and 1.
-print '----------------------------------------------------------'
 r_min = nplin.linalg.norm(abs(pos_p0[:,1] - pos_p0[:,0]))
 r_ = nplin.linalg.norm(r_min)
 t_min = 2 # initial value for least time, yrs
@@ -181,8 +194,11 @@ while t < 3.71:
 print '----------------------------------------------------------'
 print 'least distance [AU]: ', r_min
 print 'at time [yrs]: ', t_min
-print '----------------------------------------------------------'
 
+#approx stable orbit
+k = 10
+r_stable = pos_func(t_min)[:,1] * np.sqrt( (m_s / m[1]) * (1./k) )
+print '----------------------------------------------------------'
 
 #################################################################
 #################################################################
@@ -195,7 +211,7 @@ rp0 = pos_func(t_min)[:,0]
 eps = 1e-9 # the small breadth epsilon for velocity
 day = 1./365 # 1 day's portion of year 
 
-# generating with functions
+# Initial conditions
 r0 = launchPosition( rp0, R_p[0], e_theta, np.pi )
 
 v0 = planetvelocity( 0, t_min, eps ) - v_esc*e_theta( theta, rp0 )*5
