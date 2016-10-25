@@ -39,7 +39,10 @@ def e_theta(theta, r):
     returns radians. arcatn2 input is (y, x)
     """
     theta = theta + np.arctan2(r[1], r[0])
-    return theta
+    e_t = np.zeros(2)
+    e_t[0] = np.cos(theta)
+    e_t[1] = np.sin(theta)
+    return e_t
 
 def planetvelocity(nr, time, epsilon): 
     """
@@ -54,6 +57,11 @@ def planetvelocity(nr, time, epsilon):
         - pos_func(time-epsilon)[:,nr]
          ) # delta r
     Dt = 2.*epsilon # delta t
+    print '=================='
+    print '=================='
+    print 'planet velocity at initial time is: ', (Dr/Dt)
+    print '=================='
+    print '=================='
     return Dr / Dt
 
 def launchPosition(r, R, e_theta, theta):
@@ -68,9 +76,9 @@ def launchPosition(r, R, e_theta, theta):
     return r + R*e_theta(theta, r)
 
 def Gforce(r, ms, mp):
-    mp = mp*AU
+    mp = mp*M_sol
     M = mp*ms
-    M = M/AU
+    M = M/M_sol
     r_ = nplin.linalg.norm(r) #abs. distance
     F = - ( (G*M)/(r_**3) )*r
     return F
@@ -105,11 +113,11 @@ def journey(ms, rs, vs, t, dt, t_end):
     rs1_m = np.zeros(2)
     rs1_m = rs1_m+4 # AU
     ts1_m = 0 # yrs.
-    counts = 0
     # fulfilling the integration proper:
     i = 0
-    while i < (np.shape(rs)[0]-1):
+    for i in range(np.shape(rs)[0]-1):
     # iterate over planets for acceleration
+        force = np.zeros(2)
         rs[i+1] = rs[i] + vs[i]*dt
         for j in range(N+1):
             if j < N:
@@ -123,13 +131,7 @@ def journey(ms, rs, vs, t, dt, t_end):
             rs1_m = R
             ts1_m = t
             i_min = i
-#        if abs(vs[i+1, 0]) > abs(2e4):
-#            print 'vel too large', vs[i+1]
-#            print 'at time ', t
-#            print 'step ', i
-#            sys.exit()
-        i += 1
-    return rs, vs, rs1_m, ts1_m, i_min
+    return rs, vs, t, rs1_m, ts1_m, i_min
 
 ###############################################################
 # stating constants:
@@ -170,6 +172,7 @@ R_p = R_p/AU #planet radius in AU
 #########
 #escape velocity
 v_esc = np.sqrt( (2*G*m_p[0]) / nplin.linalg.norm(R_p[0]) ) 
+print 'escaoe velocity: ', v_esc
 print '----------------------------------------------------------'
 
 
@@ -206,18 +209,19 @@ print '----------------------------------------------------------'
 
 #########
 # Launch criteria
-theta = -np.pi/6 # 30 degrees in radians
+theta = 0#-np.pi/6 # 45 degrees in radians
 rp0 = pos_func(t_min)[:,0]
-eps = 1e-9 # the small breadth epsilon for velocity
+eps = 1e-6 # the small breadth epsilon for velocity
 day = 1./365 # 1 day's portion of year 
 
 # Initial conditions
-r0 = launchPosition( rp0, R_p[0], e_theta, np.pi )
+r0 = launchPosition( rp0, R_p[0], e_theta, np.pi/3 )
 
-v0 = planetvelocity( 0, t_min, eps ) - v_esc*e_theta( theta, rp0 )*5
+v0 = planetvelocity( 0, t_min, eps ) + v_esc*e_theta( theta, rp0 )*2
 
 
 # Launch
+# journey return rs, vs, t, rs1_m, ts1_m, i_min
 length1 = int(np.shape(pos_p)[2]*0.1)
 
 rs_launch = np.zeros( (length1, 2) )
@@ -225,15 +229,18 @@ vs_launch = np.zeros( (length1, 2) )
 vs_launch[0] = v0
 rs_launch[0] = r0
 
-dt = 1e-12
+dt = 1e-9
 t = t_min
 tl_end = t + (day)
 
+print '----------------------------------------------------------'
+print 'began launch at time t: ', t
 #print 'initial acceleration'
 
-rs_launch, vs_launch, rsl_m, tsl_m, i_min = (
-    journey( m_sat, rs_launch, vs_launch, t, dt, tl_end )
-        )
+rs_launch, vs_launch, t, rsl_m, tsl_m, i_min = journey( 
+    m_sat, rs_launch, vs_launch, t, dt, tl_end )
+print 'finished launch at time t: ', t
+print '----------------------------------------------------------'
 print '==============================='
 print 'vsl_launch', vs_launch
 print '==============================='
@@ -244,8 +251,6 @@ print '----------------------------------------------------------'
 print 'visualizing'
 #satelite
 plt.plot( rs_launch[0,0], rs_launch[0,1], 'ro', label=('sat start') )
-plt.plot( pos_func(t_min)[0,0], pos_func(t_min)[1,0], 'bo', 
-    label=('planet 0 at time 3.71 yrs') )
 plt.plot( rs_launch[:,0], rs_launch[:,1], 'r', label=('satellite') )
 #least distance satellite
 #plt.plot( rsl_m[0], rsl_m[1], color=('black'), marker=('v'), label=('least dist') )
@@ -255,9 +260,15 @@ plt.plot( pos_func(t_min)[0,0], pos_func(t_min)[1,0], 'bo',
     label=('planet 0 at time 3.71 yrs') )
 plt.plot( pos_func(t_min)[0,1], pos_func(t_min)[1,1], 'bo', 
     label=('planet 1 at time 3.71 yrs') )
+plt.plot( pos_func(t)[0,0], pos_func(t)[1,0], 'ro', 
+    label=('planet 0 at time '+str(t)) )
+plt.plot( pos_func(t)[0,1], pos_func(t)[1,1], 'ro', 
+    label=('planet 1 at time '+str(t)) )
 # planet orbits
-for nr in range(N):
-    plt.plot( pos_p[0, nr], pos_p[1, nr], label=('planet '+str(nr)) )
+plt.plot( pos_p[0, 0], pos_p[1, 0], 'g', label=('planet 0') )
+plt.plot( pos_p[0, 1], pos_p[1, 1], 'g', label=('planet 1') )
+for nr in range(2, N):
+    plt.plot( pos_p[0, nr], pos_p[1, nr], 'y', label=('planet '+str(nr)) )
 plt.legend()
 plt.axis('equal')
 plt.show()
