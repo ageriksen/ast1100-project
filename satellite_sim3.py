@@ -57,11 +57,11 @@ def planetvelocity(nr, time, epsilon):
         - pos_func(time-epsilon)[:,nr]
          ) # delta r
     Dt = 2.*epsilon # delta t
-    print '=================='
-    print '=================='
-    print 'planet velocity at initial time is: ', (Dr/Dt)
-    print '=================='
-    print '=================='
+#    print '=================='
+#    print '=================='
+#    print 'planet velocity at initial time is: ', (Dr/Dt)
+#    print '=================='
+#    print '=================='
     return Dr / Dt
 
 def launchPosition(r, R, e_theta, theta):
@@ -208,7 +208,7 @@ print '----------------------------------------------------------'
 
 #########
 # Launch criteria
-theta = -np.pi/6 # 45 degrees in radians
+theta = np.pi/12 # 45 degrees in radians
 rp0 = pos_func(t_min)[:,0]
 eps = 1e-6 # the small breadth epsilon for velocity
 day = 1./365 # 1 day's portion of year 
@@ -222,7 +222,7 @@ v0 = planetvelocity( 0, t_min, eps ) + v_esc*e_theta( theta, rp0 )*2
 # Launch
 #def journey(ms, rs, vs, t, dt):
 #return rs, vs, t, rs1_m, ts1_m, i_min
-length1 = int(np.shape(pos_p)[2]*0.1)
+length1 = int(np.shape(pos_p)[2]*0.5)
 
 rs_launch = np.zeros( (length1, 2) )
 vs_launch = np.zeros( (length1, 2) )
@@ -240,12 +240,12 @@ rs_launch, vs_launch, t, rsl_m, tsl_m, isl_m = journey(
     m_sat, rs_launch, vs_launch, t, dt)
 print 'finished launch at time t: ', t
 print '----------------------------------------------------------'
-print '==============================='
-print 'vsl_launch', vs_launch
-print '==============================='
+#print '==============================='
+#print 'vsl_launch', vs_launch
+#print '==============================='
 
 # mid flight
-length2 = int(np.shape(pos_p)[2]*0.5)
+length2 = int(np.shape(pos_p)[2])
 rs_mid = np.zeros( (length2, 2) )
 vs_mid = np.zeros( (length2, 2) )
 rs_mid[0] = rs_launch[-1]
@@ -260,7 +260,24 @@ rs_mid, vs_mid, t, rsm_m,  tsm_m, ism_m = journey(
 print 'to time t: ', t
 print '----------------------------------------------------------'
 
+#touchdown 
+length2 = int(np.shape(pos_p)[2]*0.5)
 
+rs_touch = np.zeros( (length1, 2) )
+vs_touch = np.zeros( (length1, 2) )
+vs_touch[0] = vs_mid[-1]
+rs_touch[0] = rs_mid[-1]
+
+dt = 1e-9
+
+print '----------------------------------------------------------'
+print 'began touch down at time t: ', t
+#print 'initial acceleration'
+
+rs_touch, vs_touch, t, rst_m, tst_m, ist_m = journey( 
+    m_sat, rs_touch, vs_touch, t, dt)
+print 'finished touch down at time t: ', t
+print '----------------------------------------------------------'
 
 #####################################################################
 # plotting journey
@@ -268,9 +285,11 @@ print '----------------------------------------------------------'
 print 'visualizing'
 #satelite
 plt.plot( rs_launch[0,0], rs_launch[0,1], 'ro', label=('sat launch start') )
-plt.plot( rs_launch[:,0], rs_launch[:,1], 'r', label=('satellite') )
+plt.plot( rs_launch[:,0], rs_launch[:,1], 'r' )
 plt.plot( rs_mid[0,0], rs_mid[0,1], 'ro', label=('sat mid start') )
-plt.plot( rs_mid[:,0], rs_mid[:,1], 'r', label=('satellite') )
+plt.plot( rs_mid[:,0], rs_mid[:,1], 'r' )
+plt.plot( rs_touch[0,0], rs_touch[0,1], 'ro', label=('sat touchdown start') )
+plt.plot( rs_touch[:,0], rs_touch[:,1], 'r' )
 #least distance satellite
 #plt.plot( rsl_m[0], rsl_m[1], color=('black'), marker=('v'), label=('least dist') )
 plt.plot( pos_func(tsm_m)[0,1], pos_func(tsm_m)[1,1], 
