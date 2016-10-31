@@ -57,11 +57,6 @@ def planetvelocity(nr, time, epsilon):
         - pos_func(time-epsilon)[:,nr]
          ) # delta r
     Dt = 2.*epsilon # delta t
-#    print '=================='
-#    print '=================='
-#    print 'planet velocity at initial time is: ', (Dr/Dt)
-#    print '=================='
-#    print '=================='
     return Dr / Dt
 
 def launchPosition(r, R, e_theta, theta):
@@ -76,7 +71,7 @@ def launchPosition(r, R, e_theta, theta):
     return r + R*e_theta(theta, r)
 
 
-def journey(ms, rs, vs, t, dt):
+def journey(ms, rs, vs, t, dt, land='nan'):
     """
     simulations of journey between planets. 
     rs is the satellite position vector. 
@@ -98,8 +93,7 @@ def journey(ms, rs, vs, t, dt):
     vs[0] = vs[0] + 0.5*a*dt
 
     # initiating variables for storing least distance and timestamp.
-    r_min = np.zeros(2)
-    r_min = r_min+4 # AU
+    rs_min = np.zeros(2)
     t_min = 0 # yrs.
     i_min = 0
     # fulfilling the integration proper:
@@ -119,12 +113,24 @@ def journey(ms, rs, vs, t, dt):
 
         vs[i+1] = vs[i] + a*dt
         R = r_p[:,1] - rs[i+1]
-        if abs(nplin.linalg.norm(R)) < abs(nplin.linalg.norm(r_min)):
-            rs1_m = R
-            ts1_m = t
-            i_min = i
+        R_ = nplin.linalg.norm(R)
+#        if abs(R_) < abs(nplin.linalg.norm(r_min)):
+#            rs_min = R
+#            t_min = t
+#            i_min = i
+        if land != 'nan':
+            r_stable = nplin.linalg.norm(rs[i+1]) * np.sqrt( (m_s / m[1]) * (1./k) )
+            if abs(R_) <= r_stable:
+                i_min = i+1
+                rs_min = rs[i+1]
+                t_min = t
+                print 'we can get a stable orbit'
+                
         t += dt
-    return rs, vs, t, r_min, t_min, i_min
+    if land != 'nan':
+        return rs, vs, t, rs_min, t_min, i_min
+    else:
+        return rs, vs, t
 
 ###############################################################
 # stating constants:
@@ -208,7 +214,7 @@ print '----------------------------------------------------------'
 
 #########
 # Launch criteria
-theta = np.pi/12 # 45 degrees in radians
+theta = -np.pi*0.06925 # 45 degrees in radians
 rp0 = pos_func(t_min)[:,0]
 eps = 1e-6 # the small breadth epsilon for velocity
 day = 1./365 # 1 day's portion of year 
@@ -236,7 +242,7 @@ print '----------------------------------------------------------'
 print 'began launch at time t: ', t
 #print 'initial acceleration'
 
-rs_launch, vs_launch, t, rsl_m, tsl_m, isl_m = journey( 
+rs_launch, vs_launch, t = journey( 
     m_sat, rs_launch, vs_launch, t, dt)
 print 'finished launch at time t: ', t
 print '----------------------------------------------------------'
@@ -245,7 +251,7 @@ print '----------------------------------------------------------'
 #print '==============================='
 
 # mid flight
-length2 = int(np.shape(pos_p)[2])
+length2 = int(np.shape(pos_p)[2]*0.7765)
 rs_mid = np.zeros( (length2, 2) )
 vs_mid = np.zeros( (length2, 2) )
 rs_mid[0] = rs_launch[-1]
@@ -255,13 +261,13 @@ dt = 1e-7
 
 print '----------------------------------------------------------'
 print 'mid flight from time t: ', t
-rs_mid, vs_mid, t, rsm_m,  tsm_m, ism_m = journey(
+rs_mid, vs_mid, t = journey(
     m_sat, rs_mid, vs_mid, t, dt)
 print 'to time t: ', t
 print '----------------------------------------------------------'
 
 #touchdown 
-length2 = int(np.shape(pos_p)[2]*0.5)
+length2 = int(np.shape(pos_p)[2]*0.54)
 
 rs_touch = np.zeros( (length1, 2) )
 vs_touch = np.zeros( (length1, 2) )
@@ -275,12 +281,18 @@ print 'began touch down at time t: ', t
 #print 'initial acceleration'
 
 rs_touch, vs_touch, t, rst_m, tst_m, ist_m = journey( 
-    m_sat, rs_touch, vs_touch, t, dt)
+    m_sat, rs_touch, vs_touch, t, dt, 1)
 print 'finished touch down at time t: ', t
 print '----------------------------------------------------------'
 
+p0_start = pos_func(t_min)[:,0]
+p1_last = pos_func(t)[:,1]
+
 #####################################################################
 # plotting journey
+circ0 = plt.Circle( (p0_start[0],p0_start[1]), R_p[0], color='r')
+circ1 = plt.Circle( (p1_last[0],p1_last[1]), R_p[1], color='r')
+fig, ax = plt.subplots()
 print '----------------------------------------------------------'
 print 'visualizing'
 #satelite
@@ -292,8 +304,11 @@ plt.plot( rs_touch[0,0], rs_touch[0,1], 'ro', label=('sat touchdown start') )
 plt.plot( rs_touch[:,0], rs_touch[:,1], 'r' )
 #least distance satellite
 #plt.plot( rsl_m[0], rsl_m[1], color=('black'), marker=('v'), label=('least dist') )
-plt.plot( pos_func(tsm_m)[0,1], pos_func(tsm_m)[1,1], 
+plt.plot( pos_func(tst_m)[0,1], pos_func(tst_m)[1,1], 
     color=('black'), marker=('s'), label=('planet least') )
+#radii of planets 0 and 1
+ax.add_artist(circ0)
+ax.add_artist(circ1)
 #least distance planets
 plt.plot( pos_func(t_min)[0,0], pos_func(t_min)[1,0], 'bo', 
     label=('planet 0 at time 3.71 yrs') )
