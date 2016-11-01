@@ -32,7 +32,7 @@ import sys
 ##############################################
 # functions
 
-def e_theta(theta, r):
+def e_theta(theta, r, i, j, c1=1, c2=1):
     """
     transforms desired angle off of radial 
     vector to angle off of 1. axis.
@@ -40,8 +40,8 @@ def e_theta(theta, r):
     """
     theta = theta + np.arctan2(r[1], r[0])
     e_t = np.zeros(2)
-    e_t[0] = np.cos(theta)
-    e_t[1] = np.sin(theta)
+    e_t[0] = c1*i(theta)
+    e_t[1] = c2*j(theta)
     return e_t
 
 def planetvelocity(nr, time, epsilon): 
@@ -58,18 +58,6 @@ def planetvelocity(nr, time, epsilon):
          ) # delta r
     Dt = 2.*epsilon # delta t
     return Dr / Dt
-
-def launchPosition(r, R, e_theta, theta):
-    """
-    position along surface of planet 0 to
-    launch from.
-    r is the position vector of the planet, 
-    R is the radius of the planet, 
-    e_theta is function above
-    theta is angle from r in radians. 
-    """
-    return r + R*e_theta(theta, r)
-
 
 def journey(ms, rs, vs, t, dt, land='nan'):
     """
@@ -96,6 +84,7 @@ def journey(ms, rs, vs, t, dt, land='nan'):
     rs_min = np.zeros(2)
     t_min = 0 # yrs.
     i_min = 0
+    first = 0
     # fulfilling the integration proper:
     for i in range(np.shape(rs)[0]-1):
     # iterate over planets for acceleration
@@ -121,10 +110,20 @@ def journey(ms, rs, vs, t, dt, land='nan'):
         if land != 'nan':
             r_stable = nplin.linalg.norm(rs[i+1]) * np.sqrt( (m_s / m[1]) * (1./k) )
             if abs(R_) <= r_stable:
-                i_min = i+1
-                rs_min = rs[i+1]
-                t_min = t
-                print 'we can get a stable orbit'
+                if first < 1: 
+                    print 'we can get a stable orbit'
+                    i_min = i+1
+                    rs_min = rs[i+1]
+                    t_min = t
+                    RS = nplin.linalg.norm(rs[i])
+                    v_so = np.sqrt( (m[1]*G)/RS )
+                    v_rel = v_so*e_theta(0, -R, np.sin, np.cos, -1)
+                    v_p1 = planetvelocity(1, t, eps)
+                    v_stable = v_p1 + v_rel
+                    vs[i+1] = v_stable
+                    first = 1
+                else:
+                    pass
                 
         t += dt
     if land != 'nan':
@@ -149,12 +148,6 @@ t_steps = n*T_max #timesteps for entire simulation
 
 #########
 #loading arrays
-#infile = open('positionsHomePlanet.npy', 'rb')
-#pos_p = np.load(infile)
-#time = np.linspace(0, T_max, t_steps) 
-#
-#pos_func = scp.interpolate.interp1d(time, pos_p)
-
 infile = open('planetPositions.npy', 'rb')
 pos_p, time = np.load(infile)
 pos_func = scp.interpolate.interp1d(time, pos_p)
@@ -220,9 +213,10 @@ eps = 1e-6 # the small breadth epsilon for velocity
 day = 1./365 # 1 day's portion of year 
 
 # Initial conditions
-r0 = launchPosition( rp0, R_p[0], e_theta, np.pi/3 )
+#def e_theta(theta, r, i, j):
+r0 = rp0 + R_p[0]*e_theta(np.pi/3, r, np.cos, np.sin)
 
-v0 = planetvelocity( 0, t_min, eps ) + v_esc*e_theta( theta, rp0 )*2
+v0 = planetvelocity( 0, t_min, eps ) + v_esc*e_theta( theta, rp0, np.cos, np.sin)*2
 
 
 # Launch
@@ -267,14 +261,14 @@ print 'to time t: ', t
 print '----------------------------------------------------------'
 
 #touchdown 
-length2 = int(np.shape(pos_p)[2]*0.54)
+length3 = int(np.shape(pos_p)[2]*0.7)
 
-rs_touch = np.zeros( (length1, 2) )
-vs_touch = np.zeros( (length1, 2) )
+rs_touch = np.zeros( (length3, 2) )
+vs_touch = np.zeros( (length3, 2) )
 vs_touch[0] = vs_mid[-1]
 rs_touch[0] = rs_mid[-1]
 
-dt = 1e-9
+dt = 1e-8
 
 print '----------------------------------------------------------'
 print 'began touch down at time t: ', t
