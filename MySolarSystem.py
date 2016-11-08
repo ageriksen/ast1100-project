@@ -133,7 +133,7 @@ def atmosphere(starsyst, nr='NaN'):
 		print 'no index given'
 		return starsyst.rho0
 	else:
-		return starsyst.rho0
+		return starsyst.rho0[nr]
 
 
 
