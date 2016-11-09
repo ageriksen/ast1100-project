@@ -12,7 +12,7 @@ G = 6.674e-11 #N*m^2*kg^-2 grav. const.
 mu = 30 # an estimate of mean molecular mass
 u = 1.660539040e-27 # kg, rough mass per nucleon
 mH = 1.007825*u# hydrogen mass
-k = 3.37e-27 # planck's constant
+k = 1.38064852e-23#J*K^-1 Boltzmann's constant
 gamma = 1.4 # adiabatic power
 M_sol = 1.98855e30 #kg in 1 solar mass
 
