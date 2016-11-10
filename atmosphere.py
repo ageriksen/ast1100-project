@@ -22,7 +22,7 @@ M = MSS.p_mass(myss, 1) * M_sol # converting to kg
 R = MSS.p_radius(myss, 1)*1e3
 
 nr = 1000000 #1000000 #1e6 number of steps
-r = np.linspace(R,R+500e3, nr) #m | distance from surface to end 
+r = np.linspace(R,R+600e3, nr) #m | distance from surface to end 
 #dr = 200e3/nr
 P = np.zeros(nr)
 T = np.zeros(nr)
@@ -55,8 +55,10 @@ print 'T[ii]', type(T[ii]), T[ii]
 print 'r[ii]', type(r[ii]), r[ii]
 print 'M', type(M), M
 rho = P*mu*mH/k/T
+print 'rho[ii]', type(rho[ii]), rho[ii]
 
 r_ = r-R
+r_ = r_*1e-3
 plt.plot(r_, rho)
 plt.title('atmospheric density')
 plt.xlabel('km above surface')
@@ -65,14 +67,18 @@ plt.show()
 
 """
 run example:
+    homeplanet is planet 0
+    mass of planets, [solar masses]
+    radi of planets, [km]
     1
-    P[i] <type 'numpy.float64'> 1.40867173914
-    T[i] <type 'numpy.float64'> 280.999672804
-    r[i] <type 'numpy.float64'> 9327652.34279
+    P[i] <type 'numpy.float64'> 1.40867059095
+    T[i] <type 'numpy.float64'> 280.999607365
+    r[i] <type 'numpy.float64'> 9327652.44279
     M <type 'numpy.float64'> 1.79683818763e+25
-    999998      
-    P[ii] <type 'numpy.float64'> 0.00180090111441
-    T[ii] <type 'numpy.float64'> 140.499932872
-    r[ii] <type 'numpy.float64'> 9827651.34279
+    999998
+    P[ii] <type 'numpy.float64'> 0.00042087020128
+    T[ii] <type 'numpy.float64'> 140.499938588
+    r[ii] <type 'numpy.float64'> 9927651.24279
     M <type 'numpy.float64'> 1.79683818763e+25
+    rho[ii] <type 'numpy.float64'> 1.0892921753e-08
 """
