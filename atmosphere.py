@@ -22,8 +22,8 @@ M = MSS.p_mass(myss, 1) * M_sol # converting to kg
 R = MSS.p_radius(myss, 1)*1e3
 
 nr = 1000000 #1000000 #1e6 number of steps
-r = np.linspace(R,R+300e3, nr) #m | distance from surface to end 
-dr = 200e3/nr
+r = np.linspace(R,R+500e3, nr) #m | distance from surface to end 
+#dr = 200e3/nr
 P = np.zeros(nr)
 T = np.zeros(nr)
 rho = np.zeros(nr)
@@ -32,28 +32,47 @@ P[0] = myss.rho0[1] # Atmospheric density at surface
 adia = P[0]**(1-gamma)*T[0]**gamma #adiabatic constant
 
 
-print 'dr', dr
-print 'P[0]', P[0]
-print 'T[0]', T[0]
-print 'r[0]', r[0]
-print 'M', M
 
 for i in range(nr-1):
-#    print i # stops at 19
-#    print 'P[i]', type(P[i]), P[i]
-#    print 'T[i]', type(T[i]), T[i]
-#    print 'r[i]', type(r[i]), r[i]
-#    print 'M', type(M), M
-    P[i+1] = (P[i] * M) / (T[i] * r[i]**2)
-    P[i+1]*( -4 * np.pi * G * (mu * mH / k)**2 )
+    if i == 1:
+        print i 
+        print 'P[i]', type(P[i]), P[i]
+        print 'T[i]', type(T[i]), T[i]
+        print 'r[i]', type(r[i]), r[i]
+        print 'M', type(M), M
+    dr = r[i+1]-r[i]
+    P[i+1] = P[i] + ((P[i] * M) / (T[i] * r[i]**2))*( -4 * np.pi * G * (mu * mH / k)**2 )*dr
     if T[i] > T[0]*0.5:
         T[i+1] = (adia/(P[i+1]**(1-gamma)))**(1/gamma)
     else: 
         T[i+1] = T[i]
-    M = M + (dr**2*P[i+1]/T[i+1])
+    M = M + (dr**2*P[i+1]/T[i+1])*dr
+    ii = i
 
+print ii 
+print 'P[ii]', type(P[ii]), P[ii]
+print 'T[ii]', type(T[ii]), T[ii]
+print 'r[ii]', type(r[ii]), r[ii]
+print 'M', type(M), M
 rho = P*mu*mH/k/T
 
-plt.plot(r, rho)
+r_ = r-R
+plt.plot(r_, rho)
 plt.title('atmospheric density')
+plt.xlabel('km above surface')
+plt.ylabel('N*m^-2')
 plt.show()
+
+"""
+run example:
+    1
+    P[i] <type 'numpy.float64'> 1.40867173914
+    T[i] <type 'numpy.float64'> 280.999672804
+    r[i] <type 'numpy.float64'> 9327652.34279
+    M <type 'numpy.float64'> 1.79683818763e+25
+    999998      
+    P[ii] <type 'numpy.float64'> 0.00180090111441
+    T[ii] <type 'numpy.float64'> 140.499932872
+    r[ii] <type 'numpy.float64'> 9827651.34279
+    M <type 'numpy.float64'> 1.79683818763e+25
+"""
