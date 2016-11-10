@@ -65,6 +65,12 @@ plt.xlabel('km above surface')
 plt.ylabel('N*m^-2')
 plt.show()
 
+# saving to arrays:
+path = '/home/anderger/Documents/ast1100-project/atmosphere_val'
+np.save(path + '/Temperature.npy', T)
+np.save(path + '/Density.npy', rho)
+np.save(path + '/Position.npy', r)
+
 """
 run example:
     homeplanet is planet 0
