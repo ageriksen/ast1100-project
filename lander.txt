@@ -1,0 +1,3 @@
+init
+orient 1
+orient 2
