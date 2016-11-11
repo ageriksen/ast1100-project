@@ -23,14 +23,18 @@ import scipy.interpolate as scp
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-def v_s(): #stable orbit velocity
-    return np.sqrt( (M * G) / Rs )
+def v_s(Rs): #stable orbit velocity
+    return 
 
 
-def e_theta(): 
+def e_rad(theta, phi): 
     # function for cartesian coordinates of polar
-    theta = theta + np.arctan2()
-    phi = phi + np.arctan2()
+    # assuming scaling can be done later.
+    e_r = np.zeros(3)
+    e_r[0] = np.cos(theta)*np.sin(phi)
+    e_r[1] = np.sin(theta)*np.cos(phi)
+    e_r[2] = np.cos(phi)
+    return e_r
 
 G = 6.674e-11 #N * m^2 * kg^-2 gravitational constant
 AU = 149597871e3 #m in an AU
@@ -42,9 +46,6 @@ T = np.load(path+'Temperature.npy')# Temperature array as a function of distance
 rho = np.load(path+'Density.npy') # temperature array as func of distance
 r_dense = np.load(path+'Position.npy') # position vector for density
 rho_func = scp.interpolate.interp1d(r_dense, rho)
-
-t0 = 1 #s after init call, 
-dt = 50#s timestep
 
 myss = MMS.Myseed()
 R = MMS.p_radius(myss, 1) # radius of planet
@@ -59,7 +60,7 @@ print 'r0', type(r0), r0
 v0 = np.array((-5.84332194e-02, 2.98569804e+03, 0.00000000e+00))
 print 'v0', type(v0), v0
 
-nr = 1000000#1e6
+nr = 10000
 r = np.zeros((nr, 3))
 v = np.zeros((nr, 3))
 r[0] = r0
@@ -68,15 +69,20 @@ print 'r0', r[0]
 print 'v0', v[0]
 
 #Leapfrog integration
+t0 = 1 #s after init call, 
+dt = 3600#s timestep
+dv = 3 #m/s change in velocity by boost (0.1% of initial vel.)
+t = 0
+first = 0
+second = 0
 # v0 to vhalf:
 r_ = np.linalg.norm(r) 
 a = -G* ( M/r_**3 ) * r[0]
 v[0] = v[0] + 0.5*a*dt
 
+print 'integrating'
+print '===================================='
 # integrater
-t = 0
-first = 0
-second = 0
 for i in range(nr-1):
     r[i+1] = r[i] + v[i]*dt
     r_ = np.linalg.norm(r[i+1])
@@ -97,20 +103,66 @@ for i in range(nr-1):
         if second < 1:
             print 'we use only gravity'
             print ag
-        second = 1
+            second = 1
         a = ag
+    Dv = 0
+    if -1 < r[i+1,1] < 1 and 0 < r[i+1,0]:
+        dv = 0.1*np.linalg.norm(v[i])
+        th = np.arctan2(v[i,0], v[i,1])
+        Dv = -dv*e_rad(th, 0)
+    elif -1 < r[i+1,1] < 1 and r[i+1,0] < 0:
+        v_ = np.linalg.norm(v[i])
+        v_so = np.sqrt( (M * G) / (np.linalg.norm(r[i+1])))
+        dv = v_ - v_so
+        th = np.arctan2(v[i,0], v[i,1])
+        Dv = dv*e_rad(th, 0)
     v[i+1] = v[i] + a*dt
+    if any(np.isnan(v[i])):
+        print 'here is the error, at time ', t, 'index ', i
+        print 'at a distance ', r[i+1]
+        break
+    print '\n'
     end = i
     t += dt
 
 print 'time passed', t, 'seconds'
-print 'at this time, position and velocity are:'
+print 'at this time, index ', end, ', position and velocity are:'
 print 'r', r[end]
 print 'v', v[end]
 
 ## making a 3D plot of orbital path
 fig = plt.figure()
 ax = fig.gca(projection='3d')
+ax.set_aspect("equal")
+
+##plotting a sphere for the planet.
+theta, phi = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+x = R*np.cos(theta)*np.sin(phi)
+y = R*np.sin(theta)*np.sin(phi)
+z = R*np.cos(phi)
+ax.plot_wireframe(x, y, z, color="r")
+
+#plotting satellite position
 ax.plot(r[:,0], r[:,1], r[:,2], label='satellite')
 ax.legend()
 plt.show()
+
+
+"""
+for testing: 
+
+    print 'at time ', t, ', index ', i, ' we need send in:'
+    print 'r(',t,'): ', r[i]
+    print 'v: ', v[i]
+    print 'dt: ', dt
+    print 'norm r', np.linalg.norm(r[i])
+    print 'Dv: ', v[i]*dt
+
+
+    print 'r[i+1]', r[i+1]
+    print 'new norm', r_
+
+    print 'with grav. acceleration', ag
+
+    print 'acceleration is: ', a
+"""
