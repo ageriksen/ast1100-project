@@ -34,6 +34,7 @@ def e_theta():
 
 G = 6.674e-11 #N * m^2 * kg^-2 gravitational constant
 AU = 149597871e3 #m in an AU
+M_sol = 1.9891e30 #kg in 1 solar mass
 m = 1100 #kg mass of satellite
 
 path = '/home/anderger/Documents/ast1100-project/atmosphere_val/'
@@ -43,11 +44,13 @@ r_dense = np.load(path+'Position.npy') # position vector for density
 rho_func = scp.interpolate.interp1d(r_dense, rho)
 
 t0 = 1 #s after init call, 
-dt = 1e-2#s timestep
+dt = 50#s timestep
 
 myss = MMS.Myseed()
 R = MMS.p_radius(myss, 1) # radius of planet
 M = MMS.p_mass(myss, 1) # mass of planet
+R *= 1e3 # converting R to m
+M *= M_sol # converting mass to kg
 
 # initial posittion relative to planet
 r0 = np.array((1.34509692e+08, 2.98569804e+03, 0.00000000e+00))
@@ -56,11 +59,13 @@ print 'r0', type(r0), r0
 v0 = np.array((-5.84332194e-02, 2.98569804e+03, 0.00000000e+00))
 print 'v0', type(v0), v0
 
-nr = 1000000
+nr = 1000000#1e6
 r = np.zeros((nr, 3))
 v = np.zeros((nr, 3))
 r[0] = r0
 v[0] = v0
+print 'r0', r[0]
+print 'v0', v[0]
 
 #Leapfrog integration
 # v0 to vhalf:
@@ -70,11 +75,16 @@ v[0] = v[0] + 0.5*a*dt
 
 # integrater
 t = 0
+first = 0
+second = 0
 for i in range(nr-1):
     r[i+1] = r[i] + v[i]*dt
     r_ = np.linalg.norm(r[i+1])
     ag = -G*r[i+1]*M/r_**3
     if r_ < r_dense[-1]:
+        if first < 1:
+            print 'pretty low'
+        first = 1
         rh = rho_func(r[i+1])
         v_ = np.linalg.norm(v[i])
         ad = -0.5*rh*v[i]*A*v_**3
@@ -84,12 +94,21 @@ for i in range(nr-1):
         else: 
             a = ag
     else: 
+        if second < 1:
+            print 'we use only gravity'
+            print ag
+        second = 1
         a = ag
     v[i+1] = v[i] + a*dt
+    end = i
     t += dt
 
-print 'time passed', t
+print 'time passed', t, 'seconds'
+print 'at this time, position and velocity are:'
+print 'r', r[end]
+print 'v', v[end]
 
+## making a 3D plot of orbital path
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.plot(r[:,0], r[:,1], r[:,2], label='satellite')
