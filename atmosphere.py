@@ -21,8 +21,8 @@ myss = MSS.Myseed()
 M = MSS.p_mass(myss, 1) * M_sol # converting to kg
 R = MSS.p_radius(myss, 1)*1e3
 
-nr = 1000000 #1000000 #1e6 number of steps
-r = np.linspace(R,R+600e3, nr) #m | distance from surface to end 
+nr = 10000000 #1000000 #1e6 number of steps
+r = np.linspace(R,R+200e4, nr) #m | distance from surface to end 
 #dr = 200e3/nr
 P = np.zeros(nr)
 T = np.zeros(nr)
