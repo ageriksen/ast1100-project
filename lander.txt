@@ -1,3 +1,3 @@
 init
 orient 1
-orient 2
+picture 2  0 1.57079632679  134509692.386   0.0   0 
